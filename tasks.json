@@ -1,0 +1,15 @@
+[
+  {
+    "id": "e722b157-430e-4aad-bbb5-bccd8c355385",
+    "name": "Tarefa Principal",
+    "projectDir": "C:\\Users\\pinto\\Documents\\Cenas\\auto",
+    "triggerTime": "05:00",
+    "days": [
+      "daily"
+    ],
+    "prompt": "ola",
+    "enabled": true,
+    "lastDeployed": "2026-05-04T16:30:53",
+    "taskSchedulerName": "Claude-Auto-e722b157-430e-4aad-bbb5-bccd8c355385"
+  }
+]

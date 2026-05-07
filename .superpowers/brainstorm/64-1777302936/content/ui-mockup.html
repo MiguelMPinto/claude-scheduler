@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Claude Scheduler — UI Mockup</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #0a0a0a;
+    color: #c8c8c8;
+    font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+    font-size: 13px;
+    min-height: 100vh;
+    padding: 0;
+  }
+
+  /* ── Title bar ── */
+  .titlebar {
+    background: #111;
+    border-bottom: 1px solid #1e1e1e;
+    padding: 10px 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    user-select: none;
+  }
+  .titlebar-dot { width: 12px; height: 12px; border-radius: 50%; }
+  .titlebar-dot.red   { background: #ff5f57; }
+  .titlebar-dot.yellow{ background: #febc2e; }
+  .titlebar-dot.green { background: #28c840; }
+  .titlebar-title {
+    color: #555;
+    font-size: 12px;
+    margin-left: 8px;
+    letter-spacing: 0.05em;
+  }
+  .titlebar-version {
+    margin-left: auto;
+    color: #333;
+    font-size: 11px;
+  }
+
+  /* ── Layout ── */
+  .app {
+    display: grid;
+    grid-template-columns: 1fr 320px;
+    grid-template-rows: auto 1fr auto;
+    height: calc(100vh - 45px);
+    max-height: 700px;
+  }
+
+  /* ── Main form ── */
+  .main-panel {
+    grid-column: 1;
+    grid-row: 1 / 3;
+    padding: 24px 28px;
+    overflow-y: auto;
+    border-right: 1px solid #1a1a1a;
+  }
+
+  .section-header {
+    color: #3a3a3a;
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #1a1a1a;
+  }
+
+  .field { margin-bottom: 20px; }
+
+  .field-label {
+    display: block;
+    color: #00ff88;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 7px;
+  }
+
+  .field-row {
+    display: flex;
+    gap: 8px;
+    align-items: stretch;
+  }
+
+  .input {
+    flex: 1;
+    background: #0f0f0f;
+    border: 1px solid #222;
+    color: #e0e0e0;
+    font-family: inherit;
+    font-size: 13px;
+    padding: 8px 12px;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .input:focus { border-color: #00ff88; }
+  .input::placeholder { color: #333; }
+
+  .input-time {
+    width: 120px;
+    flex: none;
+  }
+
+  .textarea {
+    width: 100%;
+    background: #0f0f0f;
+    border: 1px solid #222;
+    color: #e0e0e0;
+    font-family: inherit;
+    font-size: 12px;
+    padding: 10px 12px;
+    resize: vertical;
+    outline: none;
+    line-height: 1.6;
+    min-height: 160px;
+    transition: border-color 0.15s;
+  }
+  .textarea:focus { border-color: #00ff88; }
+  .textarea::placeholder { color: #282828; }
+
+  .field-hint {
+    color: #333;
+    font-size: 10px;
+    margin-top: 5px;
+    letter-spacing: 0.04em;
+  }
+
+  /* ── Buttons ── */
+  .btn {
+    background: #0f0f0f;
+    border: 1px solid #2a2a2a;
+    color: #666;
+    font-family: inherit;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 8px 14px;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .btn:hover { border-color: #444; color: #999; }
+
+  .btn-primary {
+    background: #00ff88;
+    border-color: #00ff88;
+    color: #000;
+    font-weight: 700;
+    padding: 10px 28px;
+    font-size: 11px;
+    letter-spacing: 0.15em;
+  }
+  .btn-primary:hover { background: #00e07a; border-color: #00e07a; }
+
+  .btn-danger {
+    border-color: #1e1e1e;
+    color: #ff6060;
+  }
+  .btn-danger:hover { border-color: #ff6060; color: #ff8888; }
+
+  .textarea-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 6px;
+  }
+
+  /* ── Action bar ── */
+  .action-bar {
+    grid-column: 1;
+    grid-row: 3;
+    background: #0d0d0d;
+    border-top: 1px solid #1a1a1a;
+    border-right: 1px solid #1a1a1a;
+    padding: 14px 28px;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+  .action-bar-spacer { flex: 1; }
+
+  /* ── Right panel ── */
+  .right-panel {
+    grid-column: 2;
+    grid-row: 1 / 4;
+    display: flex;
+    flex-direction: column;
+    background: #080808;
+  }
+
+  .config-panel {
+    padding: 20px 18px;
+    border-bottom: 1px solid #141414;
+    flex-shrink: 0;
+  }
+
+  .config-key {
+    color: #2a2a2a;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    margin-bottom: 2px;
+  }
+  .config-value {
+    color: #555;
+    font-size: 11px;
+    margin-bottom: 10px;
+    word-break: break-all;
+  }
+  .config-value.highlight { color: #00aa55; }
+  .config-empty {
+    color: #2a2a2a;
+    font-size: 11px;
+    font-style: italic;
+  }
+
+  /* ── Console / Log ── */
+  .console-panel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+  .console-header {
+    padding: 10px 18px 6px;
+    color: #2a2a2a;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    border-bottom: 1px solid #111;
+    flex-shrink: 0;
+  }
+  .console-body {
+    flex: 1;
+    padding: 12px 14px;
+    overflow-y: auto;
+    font-size: 11px;
+    line-height: 1.7;
+  }
+  .log-line { display: flex; gap: 8px; }
+  .log-time { color: #252525; white-space: nowrap; }
+  .log-msg  { color: #2e8b57; }
+  .log-msg.success { color: #00ff88; }
+  .log-msg.error   { color: #ff4444; }
+  .log-msg.muted   { color: #1e1e1e; }
+
+  /* ── Scrollbar ── */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: #1e1e1e; border-radius: 2px; }
+
+  /* ── Brainstorm label ── */
+  .mockup-label {
+    position: fixed;
+    bottom: 12px;
+    right: 16px;
+    color: #222;
+    font-size: 10px;
+    letter-spacing: 0.08em;
+  }
+</style>
+</head>
+<body>
+
+<!-- Title bar -->
+<div class="titlebar">
+  <div class="titlebar-dot red"></div>
+  <div class="titlebar-dot yellow"></div>
+  <div class="titlebar-dot green"></div>
+  <span class="titlebar-title">CLAUDE SCHEDULER</span>
+  <span class="titlebar-version">v1.0.0 · localhost:3000</span>
+</div>
+
+<div class="app">
+
+  <!-- Main form panel -->
+  <div class="main-panel">
+    <div class="section-header">Configuration</div>
+
+    <!-- Project path -->
+    <div class="field">
+      <label class="field-label">Project Path</label>
+      <div class="field-row">
+        <input class="input" type="text" placeholder="C:\dev\my-project" value="C:\dev\my-project" />
+        <button class="btn">Browse</button>
+      </div>
+    </div>
+
+    <!-- Trigger time -->
+    <div class="field">
+      <label class="field-label">Trigger Time (daily)</label>
+      <div class="field-row">
+        <input class="input input-time" type="time" value="05:00" />
+      </div>
+      <div class="field-hint">Rate limit resets at this time</div>
+    </div>
+
+    <!-- Prompt -->
+    <div class="field">
+      <label class="field-label">Task Prompt</label>
+      <textarea class="textarea" rows="10" placeholder="Analyse the project, create a plan in .automation/PLAN.md,&#10;execute the changes, validate with tests, report to&#10;.automation/LAST_RUN.md. Do not stop after planning.&#10;Do not ask questions.">You are operating in headless, non-interactive mode. There is no human to ask
+clarifying questions. You MUST complete the full pipeline below before stopping.
+
+STEP 1 — ANALYSE
+Read the repository structure. Identify language, framework, build/test/lint commands.
+
+STEP 2 — PLAN
+Write a numbered plan to .automation/PLAN.md with: chosen task, files to touch...</textarea>
+      <div class="textarea-actions">
+        <button class="btn">Load Default</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Action bar -->
+  <div class="action-bar">
+    <button class="btn btn-primary">▶ Deploy</button>
+    <button class="btn">Test Run</button>
+    <button class="btn">View Logs</button>
+    <button class="btn">Task Scheduler</button>
+  </div>
+
+  <!-- Right panel -->
+  <div class="right-panel">
+
+    <!-- Current config -->
+    <div class="config-panel">
+      <div class="section-header" style="margin-bottom:14px">Current Config</div>
+      <div class="config-key">PROJECT</div>
+      <div class="config-value highlight">C:\dev\my-project</div>
+      <div class="config-key">TRIGGER</div>
+      <div class="config-value highlight">05:00 daily</div>
+      <div class="config-key">LAST DEPLOYED</div>
+      <div class="config-value">2026-04-27 10:23:01</div>
+    </div>
+
+    <!-- Console -->
+    <div class="console-panel">
+      <div class="console-header">Output</div>
+      <div class="console-body">
+        <div class="log-line"><span class="log-time">[10:23:00]</span><span class="log-msg">Creating C:\dev\automation\...</span></div>
+        <div class="log-line"><span class="log-time">[10:23:00]</span><span class="log-msg">Writing prompt.txt...</span></div>
+        <div class="log-line"><span class="log-time">[10:23:01]</span><span class="log-msg">Writing run-claude.bat...</span></div>
+        <div class="log-line"><span class="log-time">[10:23:01]</span><span class="log-msg">Writing config.json...</span></div>
+        <div class="log-line"><span class="log-time">[10:23:01]</span><span class="log-msg">Registering Task Scheduler...</span></div>
+        <div class="log-line"><span class="log-time">[10:23:02]</span><span class="log-msg success">Task created successfully.</span></div>
+        <div class="log-line"><span class="log-time">[10:23:02]</span><span class="log-msg success">DONE. Next run: tomorrow 05:00</span></div>
+        <div class="log-line"><span class="log-time muted">[—]</span><span class="log-msg muted">Waiting for input...</span></div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<div class="mockup-label">MOCKUP · brainstorm</div>
+
+</body>
+</html>

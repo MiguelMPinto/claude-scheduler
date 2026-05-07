@@ -1,0 +1,13 @@
+{
+  "name": "claude-scheduler",
+  "version": "1.0.0",
+  "description": "Visual configurator for Claude Code + Task Scheduler automation",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js",
+    "test": "node --test test/lib.test.js"
+  },
+  "dependencies": {
+    "express": "^4.21.2"
+  }
+}
