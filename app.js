@@ -7,6 +7,7 @@ const { randomUUID } = require('crypto');
 const {
   validateTaskInput,
   renderRunClaudeBat,
+  renderRunClaudeVbs,
   renderPowerShellTaskScript,
   DEFAULT_PROMPT
 } = require('./lib');
@@ -29,8 +30,10 @@ function runPowerShell(script) {
 
 function unregisterTaskScript(taskSchedulerName) {
   return [
+    '$ProgressPreference = \'SilentlyContinue\'',
     `$taskName = '${String(taskSchedulerName).replace(/'/g, "''")}'`,
-    'Unregister-ScheduledTask -TaskName $taskName -Confirm:$false -ErrorAction SilentlyContinue'
+    'Unregister-ScheduledTask -TaskName $taskName -Confirm:$false -ErrorAction SilentlyContinue',
+    'exit 0'
   ].join('\n');
 }
 
@@ -70,6 +73,7 @@ function writeTasks(tasks) {
 function taskFiles(task) {
   return {
     batPath: path.join(AUTO_DIR, `run-claude-${task.id}.bat`),
+    vbsPath: path.join(AUTO_DIR, `run-claude-${task.id}.vbs`),
     promptPath: path.join(AUTO_DIR, `prompt-${task.id}.txt`)
   };
 }
@@ -115,12 +119,13 @@ function deployTask(task, send) {
   const validationError = validateTaskInput(task);
   if (validationError) throw new Error(validationError);
 
-  const { batPath, promptPath } = taskFiles(task);
+  const { batPath, vbsPath, promptPath } = taskFiles(task);
   send('Writing prompt file...');
   fs.writeFileSync(promptPath, task.prompt, 'utf8');
 
   send('Writing task runner...');
   fs.writeFileSync(batPath, renderRunClaudeBat(task.projectDir, task.id), 'utf8');
+  fs.writeFileSync(vbsPath, renderRunClaudeVbs(batPath), 'utf8');
 
   send('Removing previous Task Scheduler registration...');
   runPowerShell(unregisterTaskScript(task.taskSchedulerName));
@@ -195,6 +200,10 @@ app.delete('/api/tasks/:id', (req, res) => {
     if (!task) return res.status(404).json({ ok: false, error: 'Task not found' });
 
     runPowerShell(unregisterTaskScript(task.taskSchedulerName));
+    const { batPath, vbsPath, promptPath } = taskFiles(task);
+    for (const f of [batPath, vbsPath, promptPath]) {
+      try { fs.unlinkSync(f); } catch {}
+    }
     writeTasks(tasks.filter(item => item.id !== req.params.id));
     res.json({ ok: true });
   } catch (e) {

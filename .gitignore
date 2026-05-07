@@ -1,3 +1,35 @@
+# Dependencies
 node_modules/
-*.log
+
+# Environment and secrets
 .env
+.env.*
+!.env.example
+
+# Runtime logs
+logs/
+*.log
+
+# Local scheduler state and generated task files
+config.json
+tasks.json
+prompt.txt
+prompt-*.txt
+run-claude.bat
+run-claude-*.bat
+
+# Claude Code / automation plugin state
+.automation/
+.superpowers/
+.claude/
+.codex/
+
+# Browser / automation profiles
+.edge-cdp-profile-*/
+.playwright-cdp-profile/
+.playwright-cdp-profile-*/
+
+# Local temporary files
+automation-test.txt
+*.tmp
+*.bak

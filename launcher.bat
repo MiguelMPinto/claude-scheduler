@@ -1,5 +1,6 @@
 @echo off
-set "APP_DIR=C:\Users\pinto\Documents\Cenas\auto"
+set "APP_DIR=%~dp0"
+if "%APP_DIR:~-1%"=="\" set "APP_DIR=%APP_DIR:~0,-1%"
 set "APP_URL=http://127.0.0.1:3000"
 
 powershell -NoProfile -ExecutionPolicy Bypass -Command "try { $r = Invoke-WebRequest -UseBasicParsing -Uri '%APP_URL%/api/config' -TimeoutSec 1; exit 0 } catch { exit 1 }" >nul 2>nul

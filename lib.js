@@ -99,21 +99,31 @@ function taskIdFromSchedulerName(taskSchedulerName) {
   return name.startsWith(prefix) ? name.slice(prefix.length) : name;
 }
 
+function renderRunClaudeVbs(batPath) {
+  const escaped = batPath.replace(/"/g, '""');
+  return [
+    'Dim shell',
+    'Set shell = CreateObject("WScript.Shell")',
+    `shell.Run """${escaped}""", 0, True`,
+    'Set shell = Nothing'
+  ].join('\r\n');
+}
+
 function renderPowerShellTaskScript(triggerTime, days, taskSchedulerName) {
   const taskId = taskIdFromSchedulerName(taskSchedulerName);
-  const scriptPath = path.join(AUTO_DIR, `run-claude-${taskId}.bat`);
+  const vbsPath = path.join(AUTO_DIR, `run-claude-${taskId}.vbs`);
   const trigger = Array.isArray(days) && days.length === 1 && days[0] === 'daily'
     ? `$trigger = New-ScheduledTaskTrigger -Daily -At "${triggerTime}"`
     : `$trigger = New-ScheduledTaskTrigger -Weekly -DaysOfWeek ${days.map(day => POWERSHELL_DAYS[day]).join(',')} -At "${triggerTime}"`;
 
   return [
+    '$ProgressPreference = \'SilentlyContinue\'',
     `$taskName = ${psSingleQuoted(taskSchedulerName)}`,
-    `$scriptPath = ${psSingleQuoted(scriptPath)}`,
+    `$vbsPath = ${psSingleQuoted(vbsPath)}`,
     `$workDir = ${psSingleQuoted(AUTO_DIR)}`,
-    '$action = New-ScheduledTaskAction -Execute $scriptPath -WorkingDirectory $workDir',
+    '$action = New-ScheduledTaskAction -Execute \'wscript.exe\' -Argument (\'/nologo "\' + $vbsPath + \'"\')',
     trigger,
-    '$settings = New-ScheduledTaskSettingsSet -ExecutionTimeLimit (New-TimeSpan -Hours 1) -MultipleInstances IgnoreNew -StartWhenAvailable -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries',
-    'Unregister-ScheduledTask -TaskName $taskName -Confirm:$false -ErrorAction SilentlyContinue',
+    '$settings = New-ScheduledTaskSettingsSet -ExecutionTimeLimit (New-TimeSpan -Hours 1) -MultipleInstances IgnoreNew -StartWhenAvailable -WakeToRun -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries',
     '$task = Register-ScheduledTask -TaskName $taskName -Action $action -Trigger $trigger -Settings $settings -RunLevel Limited -Force'
   ].join('\n');
 }
@@ -121,6 +131,7 @@ function renderPowerShellTaskScript(triggerTime, days, taskSchedulerName) {
 module.exports = {
   validateTaskInput,
   renderRunClaudeBat,
+  renderRunClaudeVbs,
   renderPowerShellTaskScript,
   DEFAULT_PROMPT,
   WEEK_DAYS,
